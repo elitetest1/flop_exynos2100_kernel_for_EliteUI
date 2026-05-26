@@ -143,6 +143,15 @@ static void enhance_touch_boost_values(struct t_ib_device_tree *ib_dt)
 		ib_dt->res[CLUSTER1].tail_value = ib_dt->res[cpu_res_id].tail_value;
 	}
 
+	/* Mirror a safe touch floor for LITTLE cluster (CLUSTER0) */
+	if (cpu_res_id != CLUSTER0 && !ib_dt->res[CLUSTER0].head_value &&
+	    !ib_dt->res[CLUSTER0].tail_value) {
+		ib_dt->res[CLUSTER0].res_id = CLUSTER0;
+		ib_dt->res[CLUSTER0].label = "cluster0";
+		ib_dt->res[CLUSTER0].head_value = 1820000; /* 1.82 GHz */
+		ib_dt->res[CLUSTER0].tail_value = 1586000; /* 1.586 GHz */
+	}
+
 	/*
 	 * The runtime input-booster configs on this platform keep INT at 0
 	 * for touch, but the display path still needs more headroom than that
@@ -1023,6 +1032,11 @@ void input_booster_init(void)
 	    allowed_res_count < max_resource_count) {
 		allowed_resources[allowed_res_count++] = CLUSTER1;
 		pr_info(ITAG" Added synthesized cluster1 touch boost resource");
+	}
+	if (!has_allowed_resource(CLUSTER0) && has_allowed_resource(CLUSTER2) &&
+	    allowed_res_count < max_resource_count) {
+		allowed_resources[allowed_res_count++] = CLUSTER0;
+		pr_info(ITAG" Added synthesized cluster0 touch boost resource");
 	}
 #endif
 
